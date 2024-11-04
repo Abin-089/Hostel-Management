@@ -240,21 +240,23 @@ def complaints():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-    
-@app.route("/newcomplaint",methods=['POST'])
+@app.route("/newcomplaint", methods=['POST'])
 def newcomplaint():
     try:
         data = request.json
         Hno = data.get('Hno')
-        content = data.get('content')
-        
+        content = data.get('complaint')
+        if not Hno or not content:
+            return jsonify({"error": "Hno and complaint content are required."}), 400
         
         db_connection = get_db_connection()
         cursor = db_connection.cursor()
-        cursor.execute(''' insert into complaint_data values(%s,%s,0); ''',(Hno,content))
-        rows = cursor.fetchone()  # Fetch all rows matching the query
+        cursor.execute('INSERT INTO complaint_data (Hno, content, status) VALUES (%s, %s, %s)', (Hno, content, 0))
+        db_connection.commit()
+        cursor.close()
         db_connection.close()
-        return jsonify({"message":"succes"})  
+
+        return jsonify({"message": "success"}), 201  # 201 Created status
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
